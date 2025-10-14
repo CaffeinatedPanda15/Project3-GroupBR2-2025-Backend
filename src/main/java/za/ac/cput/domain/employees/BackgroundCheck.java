@@ -1,6 +1,7 @@
-package za.ac.cput.domain;
+package za.ac.cput.domain.employees;
 
 import jakarta.persistence.*;
+
 import java.util.Date;
 
 @Entity

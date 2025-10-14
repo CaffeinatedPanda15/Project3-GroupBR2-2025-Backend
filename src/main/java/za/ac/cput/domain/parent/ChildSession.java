@@ -1,4 +1,4 @@
-package za.ac.cput.domain;
+package za.ac.cput.domain.parent;
 
 import jakarta.persistence.*;
 

@@ -1,6 +1,6 @@
-package za.ac.cput.factories;
+package za.ac.cput.factories.parent;
 
-import za.ac.cput.domain.Parent;
+import za.ac.cput.domain.parent.Parent;
 
 import java.util.Set;
 

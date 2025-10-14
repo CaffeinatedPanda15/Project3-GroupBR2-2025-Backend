@@ -1,6 +1,8 @@
-package za.ac.cput.domain;
+package za.ac.cput.domain.employees;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.parent.ChildSittingSession;
+
 import java.util.HashSet;
 import java.util.Set;
 

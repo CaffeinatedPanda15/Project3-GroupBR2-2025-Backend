@@ -1,6 +1,10 @@
-package za.ac.cput.domain;
+package za.ac.cput.domain.parent;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.Address;
+import za.ac.cput.domain.Contact;
+import za.ac.cput.domain.employees.NannyReview;
+
 import java.util.HashSet;
 import java.util.Set;
 

@@ -1,8 +1,8 @@
-package za.ac.cput.factory;
+package za.ac.cput.factories.parent;
 
-import za.ac.cput.domain.ChildSittingSession;
-import za.ac.cput.domain.Driver;
-import za.ac.cput.domain.Nanny;
+import za.ac.cput.domain.parent.ChildSittingSession;
+import za.ac.cput.domain.employees.Driver;
+import za.ac.cput.domain.employees.Nanny;
 
 import java.sql.Time;
 import java.util.Date;

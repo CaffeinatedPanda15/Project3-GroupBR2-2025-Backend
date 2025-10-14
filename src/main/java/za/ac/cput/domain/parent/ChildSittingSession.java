@@ -1,6 +1,10 @@
-package za.ac.cput.domain;
+package za.ac.cput.domain.parent;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.Payment;
+import za.ac.cput.domain.employees.Driver;
+import za.ac.cput.domain.employees.Nanny;
+
 import java.sql.Time;
 import java.util.Date;
 import java.util.HashSet;

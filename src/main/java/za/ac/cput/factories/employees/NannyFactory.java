@@ -1,6 +1,6 @@
-package za.ac.cput.factories;
+package za.ac.cput.factories.employees;
 
-import za.ac.cput.domain.Nanny;
+import za.ac.cput.domain.employees.Nanny;
 import java.util.Set;
 
 public class NannyFactory {

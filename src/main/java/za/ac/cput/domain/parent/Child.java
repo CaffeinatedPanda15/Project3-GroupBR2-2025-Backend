@@ -1,6 +1,7 @@
-package za.ac.cput.domain;
+package za.ac.cput.domain.parent;
 
 import jakarta.persistence.*;
+
 import java.util.HashSet;
 import java.util.Set;
 

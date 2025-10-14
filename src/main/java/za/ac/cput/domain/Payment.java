@@ -1,6 +1,8 @@
 package za.ac.cput.domain;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.parent.ChildSittingSession;
+import za.ac.cput.domain.parent.Parent;
 
 @Entity
 public class Payment {
