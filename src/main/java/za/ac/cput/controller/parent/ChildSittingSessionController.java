@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/child-sitting-session")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class ChildSittingSessionController {
 
     private final IChildSittingSessionService childSittingSessionService;

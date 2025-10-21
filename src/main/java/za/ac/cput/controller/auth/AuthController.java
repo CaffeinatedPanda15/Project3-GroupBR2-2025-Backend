@@ -20,7 +20,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class AuthController {
 
     private final IParentService parentService;
@@ -83,30 +83,35 @@ public class AuthController {
 
             switch (role) {
                 case "nanny":
-                    Nanny nanny = new Nanny.Builder()
-                            .setNannyName(req.firstName)
-                            .setNannySurname(req.lastName)
-                            .build();
-
-                    // Set bidirectional relationships
+                    // Build collections first
                     Set<Contact> nannyContacts = new HashSet<>();
                     if (contact != null) {
-                        contact.setNanny(nanny);
                         nannyContacts.add(contact);
                     }
                     Set<Address> nannyAddresses = new HashSet<>();
                     if (address != null) {
-                        address.setNanny(nanny);
                         nannyAddresses.add(address);
                     }
 
-                    Nanny nannyWithRelations = new Nanny.Builder()
-                            .copy(nanny)
+                    // Build nanny with all relationships
+                    Nanny nanny = new Nanny.Builder()
+                            .setNannyName(req.firstName)
+                            .setNannySurname(req.lastName)
+                            .setEmail(req.email)
+                            .setPassword(req.password)
                             .setContacts(nannyContacts)
                             .setAddresses(nannyAddresses)
                             .build();
 
-                    Nanny createdNanny = nannyService.create(nannyWithRelations);
+                    // Set bidirectional relationships after building
+                    if (contact != null) {
+                        contact.setNanny(nanny);
+                    }
+                    if (address != null) {
+                        address.setNanny(nanny);
+                    }
+
+                    Nanny createdNanny = nannyService.create(nanny);
                     resp.put("success", true);
                     resp.put("role", "nanny");
                     resp.put("id", createdNanny.getNannyId());
@@ -117,6 +122,8 @@ public class AuthController {
                     Driver driver = new Driver.Builder()
                             .setDriverName(req.firstName)
                             .setDriverSurname(req.lastName)
+                            .setEmail(req.email)
+                            .setPassword(req.password)
                             .build();
                     // Note: Driver entity doesn't have contacts/addresses in the domain model
                     // currently
@@ -129,30 +136,35 @@ public class AuthController {
                     return new ResponseEntity<>(resp, HttpStatus.CREATED);
 
                 default:
-                    Parent parent = new Parent.Builder()
-                            .setParentName(req.firstName)
-                            .setParentSurname(req.lastName)
-                            .build();
-
-                    // Set bidirectional relationships
+                    // Build collections first
                     Set<Contact> parentContacts = new HashSet<>();
                     if (contact != null) {
-                        contact.setParent(parent);
                         parentContacts.add(contact);
                     }
                     Set<Address> parentAddresses = new HashSet<>();
                     if (address != null) {
-                        address.setParent(parent);
                         parentAddresses.add(address);
                     }
 
-                    Parent parentWithRelations = new Parent.Builder()
-                            .copy(parent)
+                    // Build parent with all relationships
+                    Parent parent = new Parent.Builder()
+                            .setParentName(req.firstName)
+                            .setParentSurname(req.lastName)
+                            .setEmail(req.email)
+                            .setPassword(req.password)
                             .setContacts(parentContacts)
                             .setAddresses(parentAddresses)
                             .build();
 
-                    Parent createdParent = parentService.create(parentWithRelations);
+                    // Set bidirectional relationships after building
+                    if (contact != null) {
+                        contact.setParent(parent);
+                    }
+                    if (address != null) {
+                        address.setParent(parent);
+                    }
+
+                    Parent createdParent = parentService.create(parent);
                     resp.put("success", true);
                     resp.put("role", "parent");
                     resp.put("id", createdParent.getParentId());
@@ -164,6 +176,121 @@ public class AuthController {
             e.printStackTrace();
             resp.put("success", false);
             resp.put("message", "Registration failed: " + e.getMessage());
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest req) {
+        Map<String, Object> resp = new HashMap<>();
+
+        try {
+            if (req.email == null || req.email.isEmpty() || req.password == null || req.password.isEmpty()) {
+                resp.put("success", false);
+                resp.put("message", "Email and password are required");
+                return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+            }
+
+            // Trim and convert email to lowercase for case-insensitive comparison
+            String loginEmail = req.email.trim().toLowerCase();
+            String loginPassword = req.password.trim();
+
+            System.out.println("Login attempt - Email: " + loginEmail);
+
+            // Try to find user in Parent table
+            Parent parent = parentService.getAll().stream()
+                    .filter(p -> p.getEmail() != null && loginEmail.equals(p.getEmail().trim().toLowerCase()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (parent != null) {
+                System.out.println("Found parent with email: " + parent.getEmail());
+                System.out.println("Stored password: '" + parent.getPassword() + "'");
+                System.out.println("Login password: '" + loginPassword + "'");
+                System.out.println("Password match: " + loginPassword.equals(parent.getPassword()));
+                
+                if (parent.getPassword() != null && loginPassword.equals(parent.getPassword())) {
+                    resp.put("success", true);
+                    resp.put("role", "parent");
+                    resp.put("id", parent.getParentId());
+                    resp.put("firstName", parent.getParentName());
+                    resp.put("lastName", parent.getParentSurname());
+                    resp.put("email", parent.getEmail());
+                    resp.put("message", "Login successful");
+                    return new ResponseEntity<>(resp, HttpStatus.OK);
+                } else {
+                    resp.put("success", false);
+                    resp.put("message", "Invalid email or password");
+                    return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
+                }
+            }
+
+            // Try to find user in Nanny table
+            Nanny nanny = nannyService.getAll().stream()
+                    .filter(n -> n.getEmail() != null && loginEmail.equals(n.getEmail().trim().toLowerCase()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (nanny != null) {
+                System.out.println("Found nanny with email: " + nanny.getEmail());
+                System.out.println("Stored password: '" + nanny.getPassword() + "'");
+                System.out.println("Login password: '" + loginPassword + "'");
+                System.out.println("Password match: " + loginPassword.equals(nanny.getPassword()));
+                
+                if (nanny.getPassword() != null && loginPassword.equals(nanny.getPassword())) {
+                    resp.put("success", true);
+                    resp.put("role", "nanny");
+                    resp.put("id", nanny.getNannyId());
+                    resp.put("firstName", nanny.getNannyName());
+                    resp.put("lastName", nanny.getNannySurname());
+                    resp.put("email", nanny.getEmail());
+                    resp.put("message", "Login successful");
+                    return new ResponseEntity<>(resp, HttpStatus.OK);
+                } else {
+                    resp.put("success", false);
+                    resp.put("message", "Invalid email or password");
+                    return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
+                }
+            }
+
+            // Try to find user in Driver table
+            Driver driver = driverService.getAll().stream()
+                    .filter(d -> d.getEmail() != null && loginEmail.equals(d.getEmail().trim().toLowerCase()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (driver != null) {
+                System.out.println("Found driver with email: " + driver.getEmail());
+                System.out.println("Stored password: '" + driver.getPassword() + "'");
+                System.out.println("Login password: '" + loginPassword + "'");
+                System.out.println("Password match: " + loginPassword.equals(driver.getPassword()));
+                
+                if (driver.getPassword() != null && loginPassword.equals(driver.getPassword())) {
+                    resp.put("success", true);
+                    resp.put("role", "driver");
+                    resp.put("id", driver.getDriverId());
+                    resp.put("firstName", driver.getDriverName());
+                    resp.put("lastName", driver.getDriverSurname());
+                    resp.put("email", driver.getEmail());
+                    resp.put("message", "Login successful");
+                    return new ResponseEntity<>(resp, HttpStatus.OK);
+                } else {
+                    resp.put("success", false);
+                    resp.put("message", "Invalid email or password");
+                    return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
+                }
+            }
+
+            // User not found in any table
+            System.out.println("No user found with email: " + loginEmail);
+            resp.put("success", false);
+            resp.put("message", "Invalid email or password");
+            return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.put("success", false);
+            resp.put("message", "Login failed: " + e.getMessage());
             return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/background-check")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class BackgroundCheckController {
 
     private final IBackgroundCheckService backgroundCheckService;

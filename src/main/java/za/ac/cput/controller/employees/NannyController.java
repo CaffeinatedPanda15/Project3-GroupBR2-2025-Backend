@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/nanny")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class NannyController {
 
     private final INannyService nannyService;

@@ -3,6 +3,8 @@ package za.ac.cput.controller.auth;
 public class RegistrationRequest {
     public String firstName;
     public String lastName;
+    public String email;
+    public String password;
     public String phone1;
     public String phone2;
     public String houseNumber;

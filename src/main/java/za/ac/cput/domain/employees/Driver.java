@@ -15,6 +15,8 @@ public class Driver {
 
     private String driverName;
     private String driverSurname;
+    private String email;
+    private String password;
 
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChildSittingSession> sessions = new HashSet<>();
@@ -25,6 +27,8 @@ public class Driver {
         this.driverId = builder.driverId;
         this.driverName = builder.driverName;
         this.driverSurname = builder.driverSurname;
+        this.email = builder.email;
+        this.password = builder.password;
         this.sessions = builder.sessions;
     }
 
@@ -34,6 +38,8 @@ public class Driver {
                 "driverId=" + driverId +
                 ", driverName='" + driverName + '\'' +
                 ", driverSurname='" + driverSurname + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
                 ", sessions=" + sessions +
                 '}';
     }
@@ -41,17 +47,23 @@ public class Driver {
     public int getDriverId() { return driverId; }
     public String getDriverName() { return driverName; }
     public String getDriverSurname() { return driverSurname; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
     public Set<ChildSittingSession> getSessions() { return sessions; }
 
     public static class Builder {
         private int driverId;
         private String driverName;
         private String driverSurname;
+        private String email;
+        private String password;
         private Set<ChildSittingSession> sessions = new HashSet<>();
 
         public Builder setDriverId(int driverId) { this.driverId = driverId; return this; }
         public Builder setDriverName(String driverName) { this.driverName = driverName; return this; }
         public Builder setDriverSurname(String driverSurname) { this.driverSurname = driverSurname; return this; }
+        public Builder setEmail(String email) { this.email = email; return this; }
+        public Builder setPassword(String password) { this.password = password; return this; }
         public Builder setSessions(Set<ChildSittingSession> sessions) { this.sessions = sessions; return this; }
 
         public Driver build() { return new Driver(this); }
@@ -60,6 +72,8 @@ public class Driver {
             this.driverId = driver.driverId;
             this.driverName = driver.driverName;
             this.driverSurname = driver.driverSurname;
+            this.email = driver.email;
+            this.password = driver.password;
             this.sessions = driver.sessions;
             return this;
         }

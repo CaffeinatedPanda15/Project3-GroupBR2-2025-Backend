@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/parent")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class ParentController {
 
     private final IParentService parentService;
