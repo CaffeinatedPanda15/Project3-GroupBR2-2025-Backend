@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.parent.Child;
+import za.ac.cput.domain.parent.Parent;
 import za.ac.cput.service.parent.IChildService;
 
 import java.util.ArrayList;
@@ -25,8 +26,17 @@ public class ChildController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody Child child) {
+    public ResponseEntity<Map<String, Object>> create(@RequestBody Child child, @RequestParam(required = false) Integer parentId) {
         try {
+            // If parentId is provided as a parameter, use it
+            if (parentId != null && child.getParent() == null) {
+                Parent parent = new Parent.Builder().setParentId(parentId).build();
+                child = new Child.Builder()
+                        .copy(child)
+                        .setParent(parent)
+                        .build();
+            }
+            
             Child created = childService.create(child);
             Map<String, Object> data = new HashMap<>();
             data.put("childId", created.getChildId());
@@ -36,6 +46,7 @@ public class ChildController {
             data.put("parentId", created.getParent() != null ? created.getParent().getParentId() : null);
             return new ResponseEntity<>(data, HttpStatus.CREATED);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
