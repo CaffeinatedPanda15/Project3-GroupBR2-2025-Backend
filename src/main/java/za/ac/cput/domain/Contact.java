@@ -53,6 +53,30 @@ public class Contact {
         return email;
     }
 
+    public Parent getParent() {
+        return parent;
+    }
+
+    public Nanny getNanny() {
+        return nanny;
+    }
+
+    public Driver getDriver() {
+        return driver;
+    }
+
+    public void setParent(Parent parent) {
+        this.parent = parent;
+    }
+
+    public void setNanny(Nanny nanny) {
+        this.nanny = nanny;
+    }
+
+    public void setDriver(Driver driver) {
+        this.driver = driver;
+    }
+
     @Override
     public String toString() {
         return "Contact{" +
@@ -102,6 +126,5 @@ public class Contact {
         }
 
     }// End of Builder class
-
 
 }// End of Contact class

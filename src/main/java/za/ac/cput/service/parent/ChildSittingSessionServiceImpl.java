@@ -1,10 +1,9 @@
-package za.ac.cput.service;
+package za.ac.cput.service.parent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import za.ac.cput.domain.parent.ChildSittingSession;
 import za.ac.cput.repositories.parent.IChildSittingSessionRepository;
-import za.ac.cput.service.parent.IChildSittingSessionService;
 import java.util.List;
 import java.util.stream.Collectors;
 

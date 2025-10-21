@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.employees.BackgroundCheck;
-import za.ac.cput.service.employees.IBackgroundCheckService;
+import za.ac.cput.service.IBackgroundCheckService;
 
 import java.util.List;
 

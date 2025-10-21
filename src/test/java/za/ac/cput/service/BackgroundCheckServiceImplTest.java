@@ -8,7 +8,7 @@ import za.ac.cput.domain.employees.BackgroundCheck;
 import za.ac.cput.domain.employees.Nanny;
 import za.ac.cput.factories.employees.BackgroundCheckFactory;
 import za.ac.cput.factories.employees.NannyFactory;
-import za.ac.cput.service.employees.IBackgroundCheckService;
+import za.ac.cput.service.IBackgroundCheckService;
 import za.ac.cput.service.employees.INannyService;
 
 import java.util.Date;
@@ -52,26 +52,26 @@ class BackgroundCheckServiceImplTest {
 
         // Create background checks
         backgroundCheck1 = BackgroundCheckFactory.createBackgroundCheck(
-                "Approved", 
-                new Date(), 
-                "Security Agency A", 
-                nanny1
-        );
+                "Approved",
+                new Date(),
+                "Security Agency A",
+                nanny1);
         BackgroundCheck created1 = backgroundCheckService.create(backgroundCheck1);
         assertNotNull(created1);
         assertEquals("Approved", created1.getStatus());
-        System.out.println("Created Background Check 1 - ID: " + created1.getBackgroundCheckId() + ", Status: " + created1.getStatus());
+        System.out.println("Created Background Check 1 - ID: " + created1.getBackgroundCheckId() + ", Status: "
+                + created1.getStatus());
 
         backgroundCheck2 = BackgroundCheckFactory.createBackgroundCheck(
-                "Pending", 
-                new Date(), 
-                "Security Agency B", 
-                nanny2
-        );
+                "Pending",
+                new Date(),
+                "Security Agency B",
+                nanny2);
         BackgroundCheck created2 = backgroundCheckService.create(backgroundCheck2);
         assertNotNull(created2);
         assertEquals("Pending", created2.getStatus());
-        System.out.println("Created Background Check 2 - ID: " + created2.getBackgroundCheckId() + ", Status: " + created2.getStatus());
+        System.out.println("Created Background Check 2 - ID: " + created2.getBackgroundCheckId() + ", Status: "
+                + created2.getStatus());
     }
 
     @Test
@@ -80,9 +80,9 @@ class BackgroundCheckServiceImplTest {
         BackgroundCheck read = backgroundCheckService.read(1);
         assertNotNull(read);
         assertEquals("Approved", read.getStatus());
-        System.out.println("Read Background Check ID: " + read.getBackgroundCheckId() + 
-                           ", Status: " + read.getStatus() + 
-                           ", Verified By: " + read.getVerifiedBy());
+        System.out.println("Read Background Check ID: " + read.getBackgroundCheckId() +
+                ", Status: " + read.getStatus() +
+                ", Verified By: " + read.getVerifiedBy());
     }
 
     @Test
@@ -99,7 +99,8 @@ class BackgroundCheckServiceImplTest {
         BackgroundCheck result = backgroundCheckService.update(updated);
         assertNotNull(result);
         assertEquals("Verified", result.getStatus());
-        System.out.println("Updated Background Check - ID: " + result.getBackgroundCheckId() + ", Status: " + result.getStatus());
+        System.out.println(
+                "Updated Background Check - ID: " + result.getBackgroundCheckId() + ", Status: " + result.getStatus());
     }
 
     @Test
@@ -118,7 +119,8 @@ class BackgroundCheckServiceImplTest {
         BackgroundCheck check = backgroundCheckService.getByNannyId(nanny1.getNannyId());
         assertNotNull(check);
         assertEquals("Verified", check.getStatus());
-        System.out.println("Background Check by Nanny ID - ID: " + check.getBackgroundCheckId() + ", Status: " + check.getStatus());
+        System.out.println("Background Check by Nanny ID - ID: " + check.getBackgroundCheckId() + ", Status: "
+                + check.getStatus());
     }
 
     @Test
