@@ -1,5 +1,6 @@
 package za.ac.cput.domain.parent;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -15,10 +16,12 @@ public class Child {
     private String childSurname;
     private int childAge;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_id", nullable = false)
     private Parent parent;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChildSession> childSessions = new HashSet<>();
 

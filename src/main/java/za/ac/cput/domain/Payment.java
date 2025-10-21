@@ -1,5 +1,6 @@
 package za.ac.cput.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.parent.ChildSittingSession;
 import za.ac.cput.domain.parent.Parent;
@@ -14,10 +15,12 @@ public class Payment {
     private double amount;
     private int timeStamp;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_id", nullable = false)
     private Parent parent;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
     private ChildSittingSession session;

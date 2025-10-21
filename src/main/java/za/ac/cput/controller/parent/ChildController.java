@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.parent.Child;
 import za.ac.cput.service.parent.IChildService;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/child")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class ChildController {
 
     private final IChildService childService;
@@ -22,10 +25,16 @@ public class ChildController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Child> create(@RequestBody Child child) {
+    public ResponseEntity<Map<String, Object>> create(@RequestBody Child child) {
         try {
             Child created = childService.create(child);
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
+            Map<String, Object> data = new HashMap<>();
+            data.put("childId", created.getChildId());
+            data.put("childName", created.getChildName());
+            data.put("childSurname", created.getChildSurname());
+            data.put("childAge", created.getChildAge());
+            data.put("parentId", created.getParent() != null ? created.getParent().getParentId() : null);
+            return new ResponseEntity<>(data, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -64,14 +73,33 @@ public class ChildController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Child>> getAll() {
+    public ResponseEntity<List<Map<String, Object>>> getAll() {
         List<Child> children = childService.getAll();
-        return new ResponseEntity<>(children, HttpStatus.OK);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Child c : children) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("childId", c.getChildId());
+            data.put("childName", c.getChildName());
+            data.put("childSurname", c.getChildSurname());
+            data.put("childAge", c.getChildAge());
+            data.put("parentId", c.getParent() != null ? c.getParent().getParentId() : null);
+            list.add(data);
+        }
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
     @GetMapping("/parent/{parentId}")
-    public ResponseEntity<List<Child>> getByParentId(@PathVariable Integer parentId) {
+    public ResponseEntity<List<Map<String, Object>>> getByParentId(@PathVariable Integer parentId) {
         List<Child> children = childService.getChildrenByParent(parentId);
-        return new ResponseEntity<>(children, HttpStatus.OK);
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Child c : children) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("childId", c.getChildId());
+            data.put("childName", c.getChildName());
+            data.put("childSurname", c.getChildSurname());
+            data.put("childAge", c.getChildAge());
+            list.add(data);
+        }
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 }

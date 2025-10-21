@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contact")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class ContactController {
 
     private final IContactService contactService;
