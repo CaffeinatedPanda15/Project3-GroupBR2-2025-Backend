@@ -1,9 +1,10 @@
-package za.ac.cput.service;
+package za.ac.cput.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import za.ac.cput.domain.Payment;
 import za.ac.cput.repositories.IPaymentRepository;
+import za.ac.cput.service.IPaymentService;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -1,9 +1,10 @@
-package za.ac.cput.service.parent;
+package za.ac.cput.service.impl.parent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import za.ac.cput.domain.parent.Parent;
 import za.ac.cput.repositories.parent.IParentRepository;
+import za.ac.cput.service.parent.IParentService;
 import java.util.List;
 
 @Service

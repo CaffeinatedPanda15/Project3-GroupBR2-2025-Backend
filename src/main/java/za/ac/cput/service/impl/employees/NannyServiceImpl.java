@@ -1,9 +1,10 @@
-package za.ac.cput.service.employees;
+package za.ac.cput.service.impl.employees;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import za.ac.cput.domain.employees.Nanny;
 import za.ac.cput.repositories.employees.INannyRepository;
+import za.ac.cput.service.employees.INannyService;
 import java.util.List;
 
 @Service

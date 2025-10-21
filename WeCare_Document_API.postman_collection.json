@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "WeCare Document Upload API",
+    "description": "API endpoints for document upload functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload Single Document",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "path/to/your/file.pdf"
+            },
+            {
+              "key": "documentType",
+              "value": "Reference",
+              "type": "text"
+            },
+            {
+              "key": "backgroundCheckId",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "uploadedBy",
+              "value": "testUser",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/documents/upload",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "documents", "upload"]
+        }
+      }
+    },
+    {
+      "name": "Get All Documents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/documents/all",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "documents", "all"]
+        }
+      }
+    },
+    {
+      "name": "Get Documents by Background Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/documents/background-check/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "documents", "background-check", "1"]
+        }
+      }
+    },
+    {
+      "name": "Download Document",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/documents/download/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "documents", "download", "1"]
+        }
+      }
+    },
+    {
+      "name": "Update Document Status",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/documents/update-status/1?status=Approved",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "documents", "update-status", "1"],
+          "query": [
+            {
+              "key": "status",
+              "value": "Approved"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Document",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/documents/delete/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "documents", "delete", "1"]
+        }
+      }
+    },
+    {
+      "name": "Create Background Check",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Pending\",\n  \"checkDate\": \"2025-10-20T00:00:00.000+00:00\",\n  \"verifiedBy\": \"System\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/background-check/create",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "background-check", "create"]
+        }
+      }
+    },
+    {
+      "name": "Get All Background Checks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/background-check/all",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "background-check", "all"]
+        }
+      }
+    }
+  ]
+}
