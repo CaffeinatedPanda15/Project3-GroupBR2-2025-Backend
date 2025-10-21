@@ -19,11 +19,12 @@ import za.ac.cput.repositories.parent.IParentRepository;
 import za.ac.cput.service.parent.IChildSittingSessionService;
 
 import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.List;
 
 @RestController
@@ -195,7 +196,7 @@ public class ChildSittingSessionController {
             Time endTime = Time.valueOf(request.getSessionEndTime());
             
             ChildSittingSession session = new ChildSittingSession.Builder()
-                    .setSessionDate(request.getSessionDate())
+                    .setSessionDate(request.getSessionDateAsDate())
                     .setSessionStartTime(startTime)
                     .setSessionEndTime(endTime)
                     .setSessionConfirmed(false) // Initially not confirmed
