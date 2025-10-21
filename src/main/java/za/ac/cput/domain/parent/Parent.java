@@ -1,5 +1,6 @@
 package za.ac.cput.domain.parent;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.Address;
 import za.ac.cput.domain.Contact;
@@ -20,15 +21,19 @@ public class Parent {
     private String email;
     private String password;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Contact> contacts = new HashSet<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Address> addresses = new HashSet<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Child> children = new HashSet<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NannyReview> nannyReviews = new HashSet<>();
 

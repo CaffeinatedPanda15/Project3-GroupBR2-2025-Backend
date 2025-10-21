@@ -1,5 +1,6 @@
 package za.ac.cput.domain.parent;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -9,10 +10,12 @@ public class ChildSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int childSessionId;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "child_id", nullable = false)
     private Child child;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
     private ChildSittingSession session;

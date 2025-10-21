@@ -1,5 +1,6 @@
 package za.ac.cput.domain.employees;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.parent.ChildSittingSession;
 
@@ -18,6 +19,7 @@ public class Driver {
     private String email;
     private String password;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChildSittingSession> sessions = new HashSet<>();
 

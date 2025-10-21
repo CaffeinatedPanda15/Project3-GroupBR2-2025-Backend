@@ -1,5 +1,6 @@
 package za.ac.cput.domain.employees;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -17,10 +18,12 @@ public class BackgroundCheck {
     private Date checkDate;
     private String verifiedBy;
 
+    @JsonIgnore
     @OneToOne
     @JoinColumn(name = "nanny_id", unique = true)
     private Nanny nanny;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "backgroundCheck", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents = new ArrayList<>();
 

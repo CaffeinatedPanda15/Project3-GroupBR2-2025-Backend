@@ -1,5 +1,6 @@
 package za.ac.cput.domain.employees;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.parent.Parent;
 
@@ -12,10 +13,12 @@ public class NannyReview {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int reviewId;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "nannyId")
     private Nanny nanny;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parentId")
     private Parent parent;

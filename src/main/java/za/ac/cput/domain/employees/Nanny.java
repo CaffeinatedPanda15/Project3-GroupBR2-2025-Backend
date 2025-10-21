@@ -1,5 +1,6 @@
 package za.ac.cput.domain.employees;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.Address;
 import za.ac.cput.domain.Contact;
@@ -19,15 +20,19 @@ public class Nanny {
     private String email;
     private String password;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "nanny", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Contact> contacts = new HashSet<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "nanny", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Address> addresses = new HashSet<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "nanny", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NannyReview> reviews = new HashSet<>();
 
+    @JsonIgnore
     @OneToOne(mappedBy = "nanny", cascade = CascadeType.ALL)
     private BackgroundCheck backgroundCheck;
 

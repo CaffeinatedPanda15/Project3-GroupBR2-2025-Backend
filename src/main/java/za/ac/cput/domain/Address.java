@@ -1,5 +1,6 @@
 package za.ac.cput.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.employees.Driver;
 import za.ac.cput.domain.employees.Nanny;
@@ -17,14 +18,17 @@ public class Address {
     private String province;
     private String postalCode;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Parent parent;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "nanny_id")
     private Nanny nanny;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "driver_id")
     private Driver driver;
