@@ -1,12 +1,13 @@
 package za.ac.cput.controller.parent;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 public class SessionBookingRequest {
     private int parentId;
     private List<Integer> childIds; // Multiple children can attend
-    private Date sessionDate;
+    private String sessionDate; // Changed to String for easier parsing: "2025-10-21"
     private String sessionStartTime; // Format: "HH:mm:ss"
     private String sessionEndTime;   // Format: "HH:mm:ss"
     private int nannyId;
@@ -16,7 +17,7 @@ public class SessionBookingRequest {
     // Constructors
     public SessionBookingRequest() {}
 
-    public SessionBookingRequest(int parentId, List<Integer> childIds, Date sessionDate, 
+    public SessionBookingRequest(int parentId, List<Integer> childIds, String sessionDate, 
                                 String sessionStartTime, String sessionEndTime, 
                                 int nannyId, Integer driverId, double paymentAmount) {
         this.parentId = parentId;
@@ -29,6 +30,16 @@ public class SessionBookingRequest {
         this.paymentAmount = paymentAmount;
     }
 
+    // Helper method to convert string date to Date object
+    public Date getSessionDateAsDate() {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            return formatter.parse(this.sessionDate);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date format. Expected: yyyy-MM-dd, got: " + this.sessionDate);
+        }
+    }
+
     // Getters and Setters
     public int getParentId() { return parentId; }
     public void setParentId(int parentId) { this.parentId = parentId; }
@@ -36,8 +47,8 @@ public class SessionBookingRequest {
     public List<Integer> getChildIds() { return childIds; }
     public void setChildIds(List<Integer> childIds) { this.childIds = childIds; }
 
-    public Date getSessionDate() { return sessionDate; }
-    public void setSessionDate(Date sessionDate) { this.sessionDate = sessionDate; }
+    public String getSessionDate() { return sessionDate; }
+    public void setSessionDate(String sessionDate) { this.sessionDate = sessionDate; }
 
     public String getSessionStartTime() { return sessionStartTime; }
     public void setSessionStartTime(String sessionStartTime) { this.sessionStartTime = sessionStartTime; }

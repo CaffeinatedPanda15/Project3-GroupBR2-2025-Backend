@@ -19,11 +19,12 @@ import za.ac.cput.repositories.parent.IParentRepository;
 import za.ac.cput.service.parent.IChildSittingSessionService;
 
 import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.List;
 
 @RestController
@@ -122,53 +123,80 @@ public class ChildSittingSessionController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            System.out.println("Booking session for parent ID: " + request.getParentId());
+            System.out.println("=== BOOKING SESSION REQUEST ===");
+            System.out.println("Parent ID: " + request.getParentId());
+            System.out.println("Child IDs: " + request.getChildIds());
+            System.out.println("Session Date: " + request.getSessionDate());
+            System.out.println("Start Time: " + request.getSessionStartTime());
+            System.out.println("End Time: " + request.getSessionEndTime());
+            System.out.println("Nanny ID: " + request.getNannyId());
+            System.out.println("Driver ID: " + request.getDriverId());
+            System.out.println("Payment Amount: " + request.getPaymentAmount());
             
             // 1. Validate parent exists
             Parent parent = parentRepository.findById((long) request.getParentId()).orElse(null);
             if (parent == null) {
+                System.err.println("ERROR: Parent not found with ID: " + request.getParentId());
                 response.put("success", false);
                 response.put("message", "Parent not found");
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
+            System.out.println("✓ Parent found: " + parent.getParentName());
+            System.out.println("✓ Parent found: " + parent.getParentName());
             
             // 2. Validate children exist and belong to parent
             Set<Child> children = new HashSet<>();
             for (Integer childId : request.getChildIds()) {
                 Child child = childRepository.findById(childId).orElse(null);
-                if (child == null || child.getParent().getParentId() != parent.getParentId()) {
+                if (child == null) {
+                    System.err.println("ERROR: Child not found with ID: " + childId);
                     response.put("success", false);
-                    response.put("message", "Invalid child ID: " + childId);
+                    response.put("message", "Child not found with ID: " + childId);
+                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                }
+                if (child.getParent().getParentId() != parent.getParentId()) {
+                    System.err.println("ERROR: Child " + childId + " does not belong to parent " + parent.getParentId());
+                    response.put("success", false);
+                    response.put("message", "Child " + childId + " does not belong to this parent");
                     return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
                 }
                 children.add(child);
+                System.out.println("✓ Child found: " + child.getChildName());
             }
             
             // 3. Validate nanny exists
             Nanny nanny = nannyRepository.findById(request.getNannyId()).orElse(null);
             if (nanny == null) {
+                System.err.println("ERROR: Nanny not found with ID: " + request.getNannyId());
                 response.put("success", false);
                 response.put("message", "Nanny not found");
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
+            System.out.println("✓ Nanny found: " + nanny.getNannyName());
+            System.out.println("✓ Nanny found: " + nanny.getNannyName());
             
             // 4. Validate driver if provided (optional)
             Driver driver = null;
             if (request.getDriverId() != null) {
                 driver = driverRepository.findById((long) request.getDriverId()).orElse(null);
                 if (driver == null) {
+                    System.err.println("ERROR: Driver not found with ID: " + request.getDriverId());
                     response.put("success", false);
                     response.put("message", "Driver not found");
                     return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
                 }
+                System.out.println("✓ Driver found: " + driver.getDriverName());
+            } else {
+                System.out.println("✓ No driver assigned");
             }
             
             // 5. Create the session
+            System.out.println("Creating session...");
             Time startTime = Time.valueOf(request.getSessionStartTime());
             Time endTime = Time.valueOf(request.getSessionEndTime());
             
             ChildSittingSession session = new ChildSittingSession.Builder()
-                    .setSessionDate(request.getSessionDate())
+                    .setSessionDate(request.getSessionDateAsDate())
                     .setSessionStartTime(startTime)
                     .setSessionEndTime(endTime)
                     .setSessionConfirmed(false) // Initially not confirmed
@@ -198,7 +226,7 @@ public class ChildSittingSessionController {
                     .build();
             
             Payment savedPayment = paymentRepository.save(payment);
-            System.out.println("Payment created with ID: " + savedPayment.getPaymentId());
+            System.out.println("✓ Payment created with ID: " + savedPayment.getPaymentId());
             
             // 8. Build success response
             response.put("success", true);
@@ -209,6 +237,10 @@ public class ChildSittingSessionController {
             if (driver != null) {
                 response.put("driverName", driver.getDriverName() + " " + driver.getDriverSurname());
             }
+            
+            System.out.println("=== BOOKING SUCCESS ===");
+            System.out.println("Session ID: " + savedSession.getSessionId());
+            System.out.println("Payment ID: " + savedPayment.getPaymentId());
             
             return new ResponseEntity<>(response, HttpStatus.CREATED);
             
