@@ -9,6 +9,9 @@ import za.ac.cput.domain.Contact;
 import za.ac.cput.domain.employees.Driver;
 import za.ac.cput.domain.employees.Nanny;
 import za.ac.cput.domain.parent.Parent;
+import za.ac.cput.repositories.employees.IDriverRepository;
+import za.ac.cput.repositories.employees.INannyRepository;
+import za.ac.cput.repositories.parent.IParentRepository;
 import za.ac.cput.service.employees.IDriverService;
 import za.ac.cput.service.employees.INannyService;
 import za.ac.cput.service.parent.IParentService;
@@ -26,12 +29,19 @@ public class AuthController {
     private final IParentService parentService;
     private final INannyService nannyService;
     private final IDriverService driverService;
+    private final IParentRepository parentRepository;
+    private final INannyRepository nannyRepository;
+    private final IDriverRepository driverRepository;
 
     @Autowired
-    public AuthController(IParentService parentService, INannyService nannyService, IDriverService driverService) {
+    public AuthController(IParentService parentService, INannyService nannyService, IDriverService driverService,
+                         IParentRepository parentRepository, INannyRepository nannyRepository, IDriverRepository driverRepository) {
         this.parentService = parentService;
         this.nannyService = nannyService;
         this.driverService = driverService;
+        this.parentRepository = parentRepository;
+        this.nannyRepository = nannyRepository;
+        this.driverRepository = driverRepository;
     }
 
     @PostMapping("/register")
@@ -40,6 +50,29 @@ public class AuthController {
 
         try {
             String role = req.role != null ? req.role.toLowerCase() : "parent";
+
+            // Check if email already exists in any table
+            if (req.email != null && !req.email.isEmpty()) {
+                String email = req.email.trim().toLowerCase();
+                
+                if (parentRepository.findByEmail(email).isPresent()) {
+                    resp.put("success", false);
+                    resp.put("message", "Email already registered");
+                    return new ResponseEntity<>(resp, HttpStatus.CONFLICT);
+                }
+                
+                if (nannyRepository.findByEmail(email).isPresent()) {
+                    resp.put("success", false);
+                    resp.put("message", "Email already registered");
+                    return new ResponseEntity<>(resp, HttpStatus.CONFLICT);
+                }
+                
+                if (driverRepository.findByEmail(email).isPresent()) {
+                    resp.put("success", false);
+                    resp.put("message", "Email already registered");
+                    return new ResponseEntity<>(resp, HttpStatus.CONFLICT);
+                }
+            }
 
             // Build Contact from phone numbers
             Contact contact = null;

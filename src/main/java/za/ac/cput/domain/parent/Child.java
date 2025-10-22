@@ -15,6 +15,7 @@ public class Child {
     private String childName;
     private String childSurname;
     private int childAge;
+    private String photoUrl;
 
     @JsonIgnore
     @ManyToOne
@@ -32,6 +33,7 @@ public class Child {
         this.childName = builder.childName;
         this.childSurname = builder.childSurname;
         this.childAge = builder.childAge;
+        this.photoUrl = builder.photoUrl;
         this.parent = builder.parent;
         this.childSessions = builder.childSessions;
     }
@@ -40,6 +42,7 @@ public class Child {
     public String getChildName() { return childName; }
     public String getChildSurname() { return childSurname; }
     public int getChildAge() { return childAge; }
+    public String getPhotoUrl() { return photoUrl; }
     public Parent getParent() { return parent; }
     public Set<ChildSession> getChildSessions() { return childSessions; }
 
@@ -50,6 +53,7 @@ public class Child {
                 ", childName='" + childName + '\'' +
                 ", childSurname='" + childSurname + '\'' +
                 ", childAge=" + childAge +
+                ", photoUrl='" + photoUrl + '\'' +
                 ", parent=" + parent +
                 '}';
     }
@@ -59,6 +63,7 @@ public class Child {
         private String childName;
         private String childSurname;
         private int childAge;
+        private String photoUrl;
         private Parent parent;
         private Set<ChildSession> childSessions = new HashSet<>();
 
@@ -66,6 +71,7 @@ public class Child {
         public Builder setChildName(String childName) { this.childName = childName; return this; }
         public Builder setChildSurname(String childSurname) { this.childSurname = childSurname; return this; }
         public Builder setChildAge(int childAge) { this.childAge = childAge; return this; }
+        public Builder setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; return this; }
         public Builder setParent(Parent parent) { this.parent = parent; return this; }
         public Builder setChildSessions(Set<ChildSession> childSessions) { this.childSessions = childSessions; return this; }
 
@@ -76,6 +82,7 @@ public class Child {
             this.childName = child.childName;
             this.childSurname = child.childSurname;
             this.childAge = child.childAge;
+            this.photoUrl = child.photoUrl;
             this.parent = child.parent;
             this.childSessions = child.childSessions;
             return this;

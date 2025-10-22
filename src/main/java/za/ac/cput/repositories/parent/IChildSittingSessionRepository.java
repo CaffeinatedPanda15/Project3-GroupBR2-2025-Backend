@@ -2,6 +2,7 @@ package za.ac.cput.repositories.parent;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import za.ac.cput.domain.parent.ChildSittingSession;
+import za.ac.cput.domain.parent.SessionStatus;
 import za.ac.cput.domain.employees.Nanny;
 import za.ac.cput.domain.employees.Driver;
 
@@ -19,4 +20,10 @@ public interface IChildSittingSessionRepository extends JpaRepository<ChildSitti
     
     // Find all sessions by driver ID
     List<ChildSittingSession> findByDriver_DriverId(int driverId);
+    
+    // Find all sessions by nanny ID and status
+    List<ChildSittingSession> findByNanny_NannyIdAndStatus(int nannyId, SessionStatus status);
+    
+    // Find all sessions by status
+    List<ChildSittingSession> findByStatus(SessionStatus status);
 }

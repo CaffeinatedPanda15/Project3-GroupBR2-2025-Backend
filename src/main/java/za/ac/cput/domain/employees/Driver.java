@@ -16,6 +16,8 @@ public class Driver {
 
     private String driverName;
     private String driverSurname;
+    
+    @Column(unique = true, nullable = false)
     private String email;
     private String password;
 

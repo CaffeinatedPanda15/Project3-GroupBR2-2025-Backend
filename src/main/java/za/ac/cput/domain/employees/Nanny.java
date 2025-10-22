@@ -17,6 +17,8 @@ public class Nanny {
 
     private String nannyName;
     private String nannySurname;
+    
+    @Column(unique = true, nullable = false)
     private String email;
     private String password;
 

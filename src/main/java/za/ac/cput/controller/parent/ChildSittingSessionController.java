@@ -10,6 +10,7 @@ import za.ac.cput.domain.parent.Child;
 import za.ac.cput.domain.parent.ChildSession;
 import za.ac.cput.domain.parent.ChildSittingSession;
 import za.ac.cput.domain.parent.Parent;
+import za.ac.cput.domain.parent.SessionStatus;
 import za.ac.cput.repositories.IPaymentRepository;
 import za.ac.cput.repositories.employees.IDriverRepository;
 import za.ac.cput.repositories.employees.INannyRepository;
@@ -200,6 +201,7 @@ public class ChildSittingSessionController {
                     .setSessionStartTime(startTime)
                     .setSessionEndTime(endTime)
                     .setSessionConfirmed(false) // Initially not confirmed
+                    .setStatus(SessionStatus.UPCOMING) // New sessions start as UPCOMING
                     .setNanny(nanny)
                     .setDriver(driver)
                     .build();
@@ -254,6 +256,54 @@ public class ChildSittingSessionController {
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "Failed to book session: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    // Activate a session (change status from UPCOMING to ACTIVE)
+    @PutMapping("/activate/{sessionId}")
+    public ResponseEntity<Map<String, Object>> activateSession(@PathVariable int sessionId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            ChildSittingSession session = childSittingSessionService.activateSession(sessionId);
+            if (session != null) {
+                response.put("success", true);
+                response.put("message", "Session activated successfully");
+                response.put("sessionId", session.getSessionId());
+                response.put("status", session.getStatus().toString());
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("success", false);
+                response.put("message", "Session not found");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to activate session: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    // Complete a session (change status from ACTIVE to COMPLETED)
+    @PutMapping("/complete/{sessionId}")
+    public ResponseEntity<Map<String, Object>> completeSession(@PathVariable int sessionId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            ChildSittingSession session = childSittingSessionService.completeSession(sessionId);
+            if (session != null) {
+                response.put("success", true);
+                response.put("message", "Session completed successfully");
+                response.put("sessionId", session.getSessionId());
+                response.put("status", session.getStatus().toString());
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("success", false);
+                response.put("message", "Session not found");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to complete session: " + e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
