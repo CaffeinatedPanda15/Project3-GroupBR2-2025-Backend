@@ -43,6 +43,7 @@ public class ChildController {
             data.put("childName", created.getChildName());
             data.put("childSurname", created.getChildSurname());
             data.put("childAge", created.getChildAge());
+            data.put("photoUrl", created.getPhotoUrl());
             data.put("parentId", created.getParent() != null ? created.getParent().getParentId() : null);
             return new ResponseEntity<>(data, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -93,6 +94,7 @@ public class ChildController {
             data.put("childName", c.getChildName());
             data.put("childSurname", c.getChildSurname());
             data.put("childAge", c.getChildAge());
+            data.put("photoUrl", c.getPhotoUrl());
             data.put("parentId", c.getParent() != null ? c.getParent().getParentId() : null);
             list.add(data);
         }

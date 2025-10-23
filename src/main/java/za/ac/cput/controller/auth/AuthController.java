@@ -6,9 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.Address;
 import za.ac.cput.domain.Contact;
+import za.ac.cput.domain.admin.Admin;
 import za.ac.cput.domain.employees.Driver;
 import za.ac.cput.domain.employees.Nanny;
 import za.ac.cput.domain.parent.Parent;
+import za.ac.cput.repositories.employees.IDriverRepository;
+import za.ac.cput.repositories.employees.INannyRepository;
+import za.ac.cput.repositories.parent.IParentRepository;
+import za.ac.cput.service.admin.IAdminService;
 import za.ac.cput.service.employees.IDriverService;
 import za.ac.cput.service.employees.INannyService;
 import za.ac.cput.service.parent.IParentService;
@@ -26,12 +31,22 @@ public class AuthController {
     private final IParentService parentService;
     private final INannyService nannyService;
     private final IDriverService driverService;
+    private final IAdminService adminService;
+    private final IParentRepository parentRepository;
+    private final INannyRepository nannyRepository;
+    private final IDriverRepository driverRepository;
 
     @Autowired
-    public AuthController(IParentService parentService, INannyService nannyService, IDriverService driverService) {
+    public AuthController(IParentService parentService, INannyService nannyService, IDriverService driverService,
+            IAdminService adminService, IParentRepository parentRepository, INannyRepository nannyRepository,
+            IDriverRepository driverRepository) {
         this.parentService = parentService;
         this.nannyService = nannyService;
         this.driverService = driverService;
+        this.adminService = adminService;
+        this.parentRepository = parentRepository;
+        this.nannyRepository = nannyRepository;
+        this.driverRepository = driverRepository;
     }
 
     @PostMapping("/register")
@@ -40,6 +55,29 @@ public class AuthController {
 
         try {
             String role = req.role != null ? req.role.toLowerCase() : "parent";
+
+            // Check if email already exists in any table
+            if (req.email != null && !req.email.isEmpty()) {
+                String email = req.email.trim().toLowerCase();
+
+                if (parentRepository.findByEmail(email).isPresent()) {
+                    resp.put("success", false);
+                    resp.put("message", "Email already registered");
+                    return new ResponseEntity<>(resp, HttpStatus.CONFLICT);
+                }
+
+                if (nannyRepository.findByEmail(email).isPresent()) {
+                    resp.put("success", false);
+                    resp.put("message", "Email already registered");
+                    return new ResponseEntity<>(resp, HttpStatus.CONFLICT);
+                }
+
+                if (driverRepository.findByEmail(email).isPresent()) {
+                    resp.put("success", false);
+                    resp.put("message", "Email already registered");
+                    return new ResponseEntity<>(resp, HttpStatus.CONFLICT);
+                }
+            }
 
             // Build Contact from phone numbers
             Contact contact = null;
@@ -208,7 +246,7 @@ public class AuthController {
                 System.out.println("Stored password: '" + parent.getPassword() + "'");
                 System.out.println("Login password: '" + loginPassword + "'");
                 System.out.println("Password match: " + loginPassword.equals(parent.getPassword()));
-                
+
                 if (parent.getPassword() != null && loginPassword.equals(parent.getPassword())) {
                     resp.put("success", true);
                     resp.put("role", "parent");
@@ -236,7 +274,7 @@ public class AuthController {
                 System.out.println("Stored password: '" + nanny.getPassword() + "'");
                 System.out.println("Login password: '" + loginPassword + "'");
                 System.out.println("Password match: " + loginPassword.equals(nanny.getPassword()));
-                
+
                 if (nanny.getPassword() != null && loginPassword.equals(nanny.getPassword())) {
                     resp.put("success", true);
                     resp.put("role", "nanny");
@@ -264,7 +302,7 @@ public class AuthController {
                 System.out.println("Stored password: '" + driver.getPassword() + "'");
                 System.out.println("Login password: '" + loginPassword + "'");
                 System.out.println("Password match: " + loginPassword.equals(driver.getPassword()));
-                
+
                 if (driver.getPassword() != null && loginPassword.equals(driver.getPassword())) {
                     resp.put("success", true);
                     resp.put("role", "driver");
@@ -278,6 +316,51 @@ public class AuthController {
                     resp.put("success", false);
                     resp.put("message", "Invalid email or password");
                     return new ResponseEntity<>(resp, HttpStatus.UNAUTHORIZED);
+                }
+            }
+
+            // Try to find user in Admin table (for username/password login)
+            // Check if login input looks like a username (no @ symbol) or email
+            if (!loginEmail.contains("@")) {
+                // This might be a username login for admin
+                Admin admin = adminService.authenticate(loginEmail, loginPassword);
+                if (admin != null && admin.isActive()) {
+                    System.out.println("Found admin with username: " + admin.getUsername());
+                    resp.put("success", true);
+                    resp.put("role", "admin");
+                    resp.put("id", admin.getAdminId());
+                    resp.put("firstName", admin.getFullName().split(" ")[0]);
+                    resp.put("lastName",
+                            admin.getFullName().contains(" ")
+                                    ? admin.getFullName().substring(admin.getFullName().indexOf(" ") + 1)
+                                    : "");
+                    resp.put("email", admin.getEmail());
+                    resp.put("username", admin.getUsername());
+                    resp.put("message", "Admin login successful");
+                    return new ResponseEntity<>(resp, HttpStatus.OK);
+                }
+            } else {
+                // Try admin login with email if no username found
+                Admin adminByEmail = adminService.getAll().stream()
+                        .filter(a -> a.getEmail() != null && loginEmail.equals(a.getEmail().trim().toLowerCase()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (adminByEmail != null && adminByEmail.isActive()
+                        && adminByEmail.getPassword().equals(loginPassword)) {
+                    System.out.println("Found admin with email: " + adminByEmail.getEmail());
+                    resp.put("success", true);
+                    resp.put("role", "admin");
+                    resp.put("id", adminByEmail.getAdminId());
+                    resp.put("firstName", adminByEmail.getFullName().split(" ")[0]);
+                    resp.put("lastName",
+                            adminByEmail.getFullName().contains(" ")
+                                    ? adminByEmail.getFullName().substring(adminByEmail.getFullName().indexOf(" ") + 1)
+                                    : "");
+                    resp.put("email", adminByEmail.getEmail());
+                    resp.put("username", adminByEmail.getUsername());
+                    resp.put("message", "Admin login successful");
+                    return new ResponseEntity<>(resp, HttpStatus.OK);
                 }
             }
 

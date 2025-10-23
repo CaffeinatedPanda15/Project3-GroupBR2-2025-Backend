@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.employees.Driver;
 import za.ac.cput.domain.parent.ChildSittingSession;
+import za.ac.cput.domain.parent.SessionStatus;
 import za.ac.cput.repositories.parent.IChildSittingSessionRepository;
 import za.ac.cput.service.employees.IDriverService;
 
@@ -72,7 +73,7 @@ public class DriverController {
         try {
             List<Driver> drivers = driverService.getAll();
             List<Map<String, Object>> driverList = new ArrayList<>();
-            
+
             for (Driver driver : drivers) {
                 Map<String, Object> driverData = new HashMap<>();
                 driverData.put("driverId", driver.getDriverId());
@@ -81,11 +82,57 @@ public class DriverController {
                 driverData.put("email", driver.getEmail());
                 driverList.add(driverData);
             }
-            
+
             return new ResponseEntity<>(driverList, HttpStatus.OK);
         } catch (Exception e) {
             System.err.println("Error fetching drivers: " + e.getMessage());
             e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // NEW ENDPOINT: Get driver's assigned trips/sessions by status
+    @GetMapping("/trips/{driverId}/status/{status}")
+    public ResponseEntity<List<Map<String, Object>>> getDriverTripsByStatus(@PathVariable int driverId,
+            @PathVariable String status) {
+        try {
+            Driver driver = driverService.read(driverId);
+            if (driver == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            List<ChildSittingSession> sessions = sessionRepository.findByDriver_DriverIdAndStatus(driverId,
+                    SessionStatus.valueOf(status.toUpperCase()));
+            List<Map<String, Object>> trips = new ArrayList<>();
+
+            for (ChildSittingSession session : sessions) {
+                Map<String, Object> trip = new HashMap<>();
+                trip.put("id", session.getSessionId());
+                trip.put("sessionDate", session.getSessionDate());
+                trip.put("startTime", session.getSessionStartTime());
+                trip.put("endTime", session.getSessionEndTime());
+                trip.put("status", session.getStatus().toString());
+
+                // Get nanny info
+                if (session.getNanny() != null) {
+                    trip.put("nannyName",
+                            session.getNanny().getNannyName() + " " + session.getNanny().getNannySurname());
+                }
+
+                // Get children info
+                List<String> childrenNames = new ArrayList<>();
+                for (var childSession : session.getChildSessions()) {
+                    var child = childSession.getChild();
+                    childrenNames.add(child.getChildName() + " " + child.getChildSurname());
+                }
+                trip.put("children", childrenNames);
+
+                trips.add(trip);
+            }
+
+            return new ResponseEntity<>(trips, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("Error fetching driver trips by status: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -109,12 +156,13 @@ public class DriverController {
                 trip.put("startTime", session.getSessionStartTime());
                 trip.put("endTime", session.getSessionEndTime());
                 trip.put("status", session.isSessionConfirmed() ? "Confirmed" : "Pending");
-                
+
                 // Get nanny info
                 if (session.getNanny() != null) {
-                    trip.put("nannyName", session.getNanny().getNannyName() + " " + session.getNanny().getNannySurname());
+                    trip.put("nannyName",
+                            session.getNanny().getNannyName() + " " + session.getNanny().getNannySurname());
                 }
-                
+
                 // Get children info
                 List<String> childrenNames = new ArrayList<>();
                 for (var childSession : session.getChildSessions()) {
@@ -122,7 +170,7 @@ public class DriverController {
                     childrenNames.add(child.getChildName() + " " + child.getChildSurname());
                 }
                 trip.put("children", childrenNames);
-                
+
                 trips.add(trip);
             }
 

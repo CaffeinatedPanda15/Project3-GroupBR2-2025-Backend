@@ -22,6 +22,10 @@ public class ChildSittingSession {
     private Time sessionStartTime;
     private Time sessionEndTime;
     private boolean sessionConfirmed;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SessionStatus status = SessionStatus.UPCOMING;
 
     @ManyToOne
     @JoinColumn(name = "nanny_id")
@@ -47,6 +51,7 @@ public class ChildSittingSession {
         this.sessionStartTime = builder.sessionStartTime;
         this.sessionEndTime = builder.sessionEndTime;
         this.sessionConfirmed = builder.sessionConfirmed;
+        this.status = builder.status != null ? builder.status : SessionStatus.UPCOMING;
         this.nanny = builder.nanny;
         this.driver = builder.driver;
         this.payments = builder.payments;
@@ -58,6 +63,8 @@ public class ChildSittingSession {
     public Time getSessionStartTime() { return sessionStartTime; }
     public Time getSessionEndTime() { return sessionEndTime; }
     public boolean isSessionConfirmed() { return sessionConfirmed; }
+    public SessionStatus getStatus() { return status; }
+    public void setStatus(SessionStatus status) { this.status = status; }
     public Nanny getNanny() { return nanny; }
     public Driver getDriver() { return driver; }
     public Set<Payment> getPayments() { return payments; }
@@ -69,6 +76,7 @@ public class ChildSittingSession {
         private Time sessionStartTime;
         private Time sessionEndTime;
         private boolean sessionConfirmed;
+        private SessionStatus status = SessionStatus.UPCOMING;
         private Nanny nanny;
         private Driver driver;
         private Set<Payment> payments = new HashSet<>();
@@ -79,6 +87,7 @@ public class ChildSittingSession {
         public Builder setSessionStartTime(Time sessionStartTime) { this.sessionStartTime = sessionStartTime; return this; }
         public Builder setSessionEndTime(Time sessionEndTime) { this.sessionEndTime = sessionEndTime; return this; }
         public Builder setSessionConfirmed(boolean sessionConfirmed) { this.sessionConfirmed = sessionConfirmed; return this; }
+        public Builder setStatus(SessionStatus status) { this.status = status; return this; }
         public Builder setNanny(Nanny nanny) { this.nanny = nanny; return this; }
         public Builder setDriver(Driver driver) { this.driver = driver; return this; }
         public Builder setPayments(Set<Payment> payments) { this.payments = payments; return this; }
@@ -92,6 +101,7 @@ public class ChildSittingSession {
             this.sessionStartTime = session.sessionStartTime;
             this.sessionEndTime = session.sessionEndTime;
             this.sessionConfirmed = session.sessionConfirmed;
+            this.status = session.status;
             this.nanny = session.nanny;
             this.driver = session.driver;
             this.payments = session.payments;

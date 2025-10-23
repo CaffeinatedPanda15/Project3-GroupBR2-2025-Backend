@@ -1,7 +1,9 @@
 package za.ac.cput.controller.parent;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.Payment;
 import za.ac.cput.domain.employees.Driver;
@@ -10,6 +12,7 @@ import za.ac.cput.domain.parent.Child;
 import za.ac.cput.domain.parent.ChildSession;
 import za.ac.cput.domain.parent.ChildSittingSession;
 import za.ac.cput.domain.parent.Parent;
+import za.ac.cput.domain.parent.SessionStatus;
 import za.ac.cput.repositories.IPaymentRepository;
 import za.ac.cput.repositories.employees.IDriverRepository;
 import za.ac.cput.repositories.employees.INannyRepository;
@@ -19,13 +22,12 @@ import za.ac.cput.repositories.parent.IParentRepository;
 import za.ac.cput.service.parent.IChildSittingSessionService;
 
 import java.sql.Time;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/child-sitting-session")
@@ -42,12 +44,12 @@ public class ChildSittingSessionController {
 
     @Autowired
     public ChildSittingSessionController(IChildSittingSessionService childSittingSessionService,
-                                        IParentRepository parentRepository,
-                                        IChildRepository childRepository,
-                                        INannyRepository nannyRepository,
-                                        IDriverRepository driverRepository,
-                                        IChildSessionRepository childSessionRepository,
-                                        IPaymentRepository paymentRepository) {
+            IParentRepository parentRepository,
+            IChildRepository childRepository,
+            INannyRepository nannyRepository,
+            IDriverRepository driverRepository,
+            IChildSessionRepository childSessionRepository,
+            IPaymentRepository paymentRepository) {
         this.childSittingSessionService = childSittingSessionService;
         this.parentRepository = parentRepository;
         this.childRepository = childRepository;
@@ -57,204 +59,309 @@ public class ChildSittingSessionController {
         this.paymentRepository = paymentRepository;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<ChildSittingSession> create(@RequestBody ChildSittingSession session) {
-        try {
-            ChildSittingSession created = childSittingSessionService.create(session);
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @GetMapping("/read/{id}")
-    public ResponseEntity<ChildSittingSession> read(@PathVariable Integer id) {
-        ChildSittingSession session = childSittingSessionService.read(id);
-        if (session != null) {
-            return new ResponseEntity<>(session, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-    @PutMapping("/update")
-    public ResponseEntity<ChildSittingSession> update(@RequestBody ChildSittingSession session) {
-        try {
-            ChildSittingSession updated = childSittingSessionService.update(session);
-            if (updated != null) {
-                return new ResponseEntity<>(updated, HttpStatus.OK);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        try {
-            childSittingSessionService.delete(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<List<ChildSittingSession>> getAll() {
-        List<ChildSittingSession> sessions = childSittingSessionService.getAll();
-        return new ResponseEntity<>(sessions, HttpStatus.OK);
-    }
-
-    @GetMapping("/confirmed")
-    public ResponseEntity<List<ChildSittingSession>> getConfirmedSessions() {
-        List<ChildSittingSession> sessions = childSittingSessionService.getConfirmedSessions();
-        return new ResponseEntity<>(sessions, HttpStatus.OK);
-    }
-
-    @GetMapping("/pending")
-    public ResponseEntity<List<ChildSittingSession>> getPendingSessions() {
-        List<ChildSittingSession> sessions = childSittingSessionService.getPendingSessions();
-        return new ResponseEntity<>(sessions, HttpStatus.OK);
-    }
-
-    // NEW BOOKING ENDPOINT
     @PostMapping("/book")
-    public ResponseEntity<Map<String, Object>> bookSession(@RequestBody SessionBookingRequest request) {
+    public ResponseEntity<Map<String, Object>> bookSession(@RequestBody Map<String, Object> sessionRequest) {
         Map<String, Object> response = new HashMap<>();
-        
         try {
             System.out.println("=== BOOKING SESSION REQUEST ===");
-            System.out.println("Parent ID: " + request.getParentId());
-            System.out.println("Child IDs: " + request.getChildIds());
-            System.out.println("Session Date: " + request.getSessionDate());
-            System.out.println("Start Time: " + request.getSessionStartTime());
-            System.out.println("End Time: " + request.getSessionEndTime());
-            System.out.println("Nanny ID: " + request.getNannyId());
-            System.out.println("Driver ID: " + request.getDriverId());
-            System.out.println("Payment Amount: " + request.getPaymentAmount());
-            
-            // 1. Validate parent exists
-            Parent parent = parentRepository.findById((long) request.getParentId()).orElse(null);
-            if (parent == null) {
-                System.err.println("ERROR: Parent not found with ID: " + request.getParentId());
+            System.out.println("Request data: " + sessionRequest);
+
+            // Extract data from request
+            int parentId = (Integer) sessionRequest.get("parentId");
+            @SuppressWarnings("unchecked")
+            List<Integer> childIds = (List<Integer>) sessionRequest.get("childIds");
+            String sessionDate = (String) sessionRequest.get("sessionDate");
+            String sessionStartTime = (String) sessionRequest.get("sessionStartTime");
+            String sessionEndTime = (String) sessionRequest.get("sessionEndTime");
+            int nannyId = (Integer) sessionRequest.get("nannyId");
+            int driverId = (Integer) sessionRequest.get("driverId");
+            double paymentAmount = ((Number) sessionRequest.get("paymentAmount")).doubleValue();
+
+            System.out.println("Parent ID: " + parentId);
+            System.out.println("Child IDs: " + childIds);
+            System.out.println("Session Date: " + sessionDate);
+            System.out.println("Start Time: " + sessionStartTime);
+            System.out.println("End Time: " + sessionEndTime);
+            System.out.println("Nanny ID: " + nannyId);
+            System.out.println("Driver ID: " + driverId);
+            System.out.println("Payment Amount: " + paymentAmount);
+
+            // Get entities
+            Parent parent = parentRepository.findById((long) parentId).orElse(null);
+            Nanny nanny = nannyRepository.findById(nannyId).orElse(null);
+            Driver driver = driverRepository.findById((long) driverId).orElse(null);
+
+            if (parent == null || nanny == null || driver == null) {
                 response.put("success", false);
-                response.put("message", "Parent not found");
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                response.put("message", "Parent, Nanny, or Driver not found");
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
-            System.out.println("✓ Parent found: " + parent.getParentName());
-            System.out.println("✓ Parent found: " + parent.getParentName());
-            
-            // 2. Validate children exist and belong to parent
-            Set<Child> children = new HashSet<>();
-            for (Integer childId : request.getChildIds()) {
-                Child child = childRepository.findById(childId).orElse(null);
-                if (child == null) {
-                    System.err.println("ERROR: Child not found with ID: " + childId);
-                    response.put("success", false);
-                    response.put("message", "Child not found with ID: " + childId);
-                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-                }
-                if (child.getParent().getParentId() != parent.getParentId()) {
-                    System.err.println("ERROR: Child " + childId + " does not belong to parent " + parent.getParentId());
-                    response.put("success", false);
-                    response.put("message", "Child " + childId + " does not belong to this parent");
-                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-                }
-                children.add(child);
-                System.out.println("✓ Child found: " + child.getChildName());
-            }
-            
-            // 3. Validate nanny exists
-            Nanny nanny = nannyRepository.findById(request.getNannyId()).orElse(null);
-            if (nanny == null) {
-                System.err.println("ERROR: Nanny not found with ID: " + request.getNannyId());
-                response.put("success", false);
-                response.put("message", "Nanny not found");
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-            }
-            System.out.println("✓ Nanny found: " + nanny.getNannyName());
-            System.out.println("✓ Nanny found: " + nanny.getNannyName());
-            
-            // 4. Validate driver if provided (optional)
-            Driver driver = null;
-            if (request.getDriverId() != null) {
-                driver = driverRepository.findById((long) request.getDriverId()).orElse(null);
-                if (driver == null) {
-                    System.err.println("ERROR: Driver not found with ID: " + request.getDriverId());
-                    response.put("success", false);
-                    response.put("message", "Driver not found");
-                    return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-                }
-                System.out.println("✓ Driver found: " + driver.getDriverName());
-            } else {
-                System.out.println("✓ No driver assigned");
-            }
-            
-            // 5. Create the session
-            System.out.println("Creating session...");
-            Time startTime = Time.valueOf(request.getSessionStartTime());
-            Time endTime = Time.valueOf(request.getSessionEndTime());
-            
+
+            // Create session
             ChildSittingSession session = new ChildSittingSession.Builder()
-                    .setSessionDate(request.getSessionDateAsDate())
-                    .setSessionStartTime(startTime)
-                    .setSessionEndTime(endTime)
-                    .setSessionConfirmed(false) // Initially not confirmed
+                    .setSessionDate(java.sql.Date.valueOf(sessionDate))
+                    .setSessionStartTime(Time.valueOf(sessionStartTime))
+                    .setSessionEndTime(Time.valueOf(sessionEndTime))
                     .setNanny(nanny)
                     .setDriver(driver)
+                    .setStatus(SessionStatus.UPCOMING)
+                    .setSessionConfirmed(true)
                     .build();
-            
+
+            // Save session first
             ChildSittingSession savedSession = childSittingSessionService.create(session);
             System.out.println("Session created with ID: " + savedSession.getSessionId());
-            
-            // 6. Link children to session
-            for (Child child : children) {
-                ChildSession childSession = new ChildSession.Builder()
-                        .setChild(child)
-                        .setSession(savedSession)
-                        .build();
-                childSessionRepository.save(childSession);
-                System.out.println("Linked child " + child.getChildName() + " to session");
+
+            // Create child sessions
+            Set<ChildSession> childSessions = new HashSet<>();
+            for (Integer childId : childIds) {
+                Child child = childRepository.findById(childId).orElse(null);
+                if (child != null) {
+                    ChildSession childSession = new ChildSession.Builder()
+                            .setSession(savedSession)
+                            .setChild(child)
+                            .build();
+                    ChildSession savedChildSession = childSessionRepository.save(childSession);
+                    childSessions.add(savedChildSession);
+                    System.out.println("Child session created for child ID: " + childId);
+                }
             }
-            
-            // 7. Create payment record
+
+            // Child sessions are automatically linked via JPA relationship
+            // No need to manually set them on the parent entity
+
+            // Create payment
             Payment payment = new Payment.Builder()
-                    .setAmount(request.getPaymentAmount())
-                    .setTimeStamp((int) (System.currentTimeMillis() / 1000))
+                    .setAmount(paymentAmount)
+                    .setTimeStamp((int) (System.currentTimeMillis() / 1000)) // Convert to timestamp
                     .setParent(parent)
                     .setSession(savedSession)
                     .build();
-            
+
             Payment savedPayment = paymentRepository.save(payment);
-            System.out.println("✓ Payment created with ID: " + savedPayment.getPaymentId());
-            
-            // 8. Build success response
+            System.out.println("Payment created with ID: " + savedPayment.getPaymentId());
+
+            // Prepare response
             response.put("success", true);
             response.put("message", "Session booked successfully");
             response.put("sessionId", savedSession.getSessionId());
             response.put("paymentId", savedPayment.getPaymentId());
             response.put("nannyName", nanny.getNannyName() + " " + nanny.getNannySurname());
-            if (driver != null) {
-                response.put("driverName", driver.getDriverName() + " " + driver.getDriverSurname());
-            }
-            
-            System.out.println("=== BOOKING SUCCESS ===");
-            System.out.println("Session ID: " + savedSession.getSessionId());
-            System.out.println("Payment ID: " + savedPayment.getPaymentId());
-            
+            response.put("driverName", driver.getDriverName() + " " + driver.getDriverSurname());
+
             return new ResponseEntity<>(response, HttpStatus.CREATED);
-            
-        } catch (IllegalArgumentException e) {
-            System.err.println("Invalid time format: " + e.getMessage());
-            response.put("success", false);
-            response.put("message", "Invalid time format. Use HH:mm:ss");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
         } catch (Exception e) {
             System.err.println("Error booking session: " + e.getMessage());
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "Failed to book session: " + e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Activate a session (change status from UPCOMING to ACTIVE)
+    @PutMapping("/activate/{sessionId}")
+    public ResponseEntity<Map<String, Object>> activateSession(@PathVariable int sessionId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            System.out.println("=== ACTIVATING SESSION " + sessionId + " ===");
+
+            // First check if session exists
+            ChildSittingSession existingSession = childSittingSessionService.read(sessionId);
+            if (existingSession == null) {
+                System.out.println("Session not found: " + sessionId);
+                response.put("success", false);
+                response.put("message", "Session not found");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+
+            System.out.println("Current session status: " + existingSession.getStatus());
+
+            ChildSittingSession session = childSittingSessionService.activateSession(sessionId);
+            if (session != null) {
+                System.out.println("Session activated successfully. New status: " + session.getStatus());
+                response.put("success", true);
+                response.put("message", "Session activated successfully");
+                response.put("sessionId", session.getSessionId());
+                response.put("status", session.getStatus().toString());
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                System.out.println("Failed to activate session");
+                response.put("success", false);
+                response.put("message", "Failed to activate session");
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            System.err.println("Error activating session: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Failed to activate session: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Complete a session (change status from ACTIVE to COMPLETED)
+    @PutMapping("/complete/{sessionId}")
+    public ResponseEntity<Map<String, Object>> completeSession(@PathVariable int sessionId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            ChildSittingSession session = childSittingSessionService.completeSession(sessionId);
+            if (session != null) {
+                response.put("success", true);
+                response.put("message", "Session completed successfully");
+                response.put("sessionId", session.getSessionId());
+                response.put("status", session.getStatus().toString());
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("success", false);
+                response.put("message", "Session not found");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to complete session: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Test endpoint to see if service is working
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint() {
+        try {
+            List<ChildSittingSession> allSessions = childSittingSessionService.getAll();
+            return new ResponseEntity<>("Found " + allSessions.size() + " total sessions", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get all sessions for a specific parent
+    @GetMapping("/parent/{parentId}")
+    @Transactional
+    public ResponseEntity<List<Map<String, Object>>> getParentSessions(@PathVariable int parentId) {
+        try {
+            System.out.println("=== FETCHING PARENT SESSIONS ===");
+            System.out.println("Parent ID: " + parentId);
+
+            // Use the repository method that uses JPQL with proper joins
+            List<ChildSittingSession> sessions;
+            try {
+                // For now, let's use a simpler approach and filter manually
+                List<ChildSittingSession> allSessions = childSittingSessionService.getAll();
+                sessions = new ArrayList<>();
+                for (ChildSittingSession session : allSessions) {
+                    // Check if any child in this session belongs to the specified parent
+                    if (session.getChildSessions() != null) {
+                        for (ChildSession childSession : session.getChildSessions()) {
+                            if (childSession != null && childSession.getChild() != null &&
+                                    childSession.getChild().getParent() != null &&
+                                    childSession.getChild().getParent().getParentId() == parentId) {
+                                sessions.add(session);
+                                break; // Found one child for this parent, no need to check others
+                            }
+                        }
+                    }
+                }
+                System.out.println("Found " + sessions.size() + " sessions for parent " + parentId);
+            } catch (Exception e) {
+                System.err.println("Error fetching sessions from service: " + e.getMessage());
+                e.printStackTrace();
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            List<Map<String, Object>> sessionList = new ArrayList<>();
+
+            for (ChildSittingSession session : sessions) {
+                try {
+                    System.out.println("Processing session: " + session.getSessionId());
+                    Map<String, Object> sessionData = new HashMap<>();
+                    sessionData.put("sessionId", session.getSessionId());
+                    sessionData.put("sessionDate", session.getSessionDate());
+                    sessionData.put("startTime", session.getSessionStartTime());
+                    sessionData.put("endTime", session.getSessionEndTime());
+                    sessionData.put("status", session.getStatus().toString());
+
+                    // Add nanny information
+                    if (session.getNanny() != null) {
+                        sessionData.put("nannyName",
+                                session.getNanny().getNannyName() + " " + session.getNanny().getNannySurname());
+                        sessionData.put("nannyId", session.getNanny().getNannyId());
+                        System.out.println("Nanny: " + session.getNanny().getNannyName());
+                    }
+
+                    // Add driver information
+                    if (session.getDriver() != null) {
+                        sessionData.put("driverName",
+                                session.getDriver().getDriverName() + " " + session.getDriver().getDriverSurname());
+                        sessionData.put("driverId", session.getDriver().getDriverId());
+                        System.out.println("Driver: " + session.getDriver().getDriverName());
+                    }
+
+                    // Add children information - only for this parent
+                    List<String> childrenNames = new ArrayList<>();
+                    if (session.getChildSessions() != null) {
+                        System.out.println("Child sessions count: " + session.getChildSessions().size());
+                        for (ChildSession childSession : session.getChildSessions()) {
+                            if (childSession != null && childSession.getChild() != null) {
+                                Child child = childSession.getChild();
+                                // Only include children that belong to this parent
+                                if (child.getParent() != null && child.getParent().getParentId() == parentId) {
+                                    childrenNames.add(child.getChildName() + " " + child.getChildSurname());
+                                    System.out.println("Child: " + child.getChildName());
+                                }
+                            }
+                        }
+                    }
+                    sessionData.put("children", childrenNames);
+
+                    sessionList.add(sessionData);
+                    System.out.println("Session data: " + sessionData);
+                } catch (Exception e) {
+                    System.err.println("Error processing session " + session.getSessionId() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("=== RETURNING " + sessionList.size() + " SESSIONS ===");
+            return new ResponseEntity<>(sessionList, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("Error fetching parent sessions: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Debug endpoint to check all sessions
+    @GetMapping("/debug/all")
+    public ResponseEntity<List<Map<String, Object>>> getAllSessionsDebug() {
+        try {
+            List<ChildSittingSession> allSessions = childSittingSessionService.getAll();
+            List<Map<String, Object>> sessionList = new ArrayList<>();
+
+            System.out.println("=== DEBUG: ALL SESSIONS ===");
+            System.out.println("Total sessions in database: " + allSessions.size());
+
+            for (ChildSittingSession session : allSessions) {
+                Map<String, Object> sessionData = new HashMap<>();
+                sessionData.put("sessionId", session.getSessionId());
+                sessionData.put("sessionDate", session.getSessionDate());
+                sessionData.put("status", session.getStatus().toString());
+
+                try {
+                    sessionData.put("childSessionsCount", session.getChildSessions().size());
+                } catch (Exception e) {
+                    sessionData.put("childSessionsCount", "Error loading: " + e.getMessage());
+                }
+
+                sessionList.add(sessionData);
+            }
+
+            return new ResponseEntity<>(sessionList, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("Error in debug endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

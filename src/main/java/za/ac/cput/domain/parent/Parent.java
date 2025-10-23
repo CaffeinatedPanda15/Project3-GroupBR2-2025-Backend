@@ -18,6 +18,8 @@ public class Parent {
 
     private String parentName;
     private String parentSurname;
+    
+    @Column(unique = true, nullable = false)
     private String email;
     private String password;
 
